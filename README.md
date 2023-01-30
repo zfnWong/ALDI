@@ -1,5 +1,5 @@
 # ALDI
-ALDI is a state-of-the-art framework for cold-start recommendation. It addresses the three gaps (i.e., the ranking gap, identification gap and rating gap) between the warm model and cold model in a general knowledge distillation-based framework.
+ALDI is a state-of-the-art framework for cold-start recommendation. It addresses the three difference (i.e., rating distribution difference, ranking difference and identification difference) between the warm model and cold model in a general knowledge distillation-based framework.
 
 # Quick Start
 - Run `python main.py --embed_meth bprmf --dataset CiteULike --model ALDI`.
