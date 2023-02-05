@@ -4,7 +4,7 @@ ALDI is a state-of-the-art framework for cold-start recommendation. It addresses
 # Quick Start
 - Run `python main.py --embed_meth bprmf --dataset CiteULike --model ALDI`.
 
-# From Scratch
+# Run From Scratch
 1. Pre-process the dataset
     - Go the `data` directory by `cd data/`.
     - Split the dataset by `python split.py --dataset CiteULike`.

@@ -3,24 +3,23 @@ from tqdm import tqdm
 
 
 def init(args):
-    global Ks, VAL_BATCH_SIZE, TEST_BATCH_SIZE, LOG_ARANGE, max_K, DEVICE, N_JOBS
+    global Ks, TEST_BATCH_SIZE, LOG_ARANGE, max_K, DEVICE, N_JOBS
     print('ndcg init for %s' % args.dataset)
-    VAL_BATCH_SIZE = args.val_batch_us
-    TEST_BATCH_SIZE = args.test_batch_us
     Ks = args.Ks
     max_K = max(Ks)
+    TEST_BATCH_SIZE = args.test_batch_us
     LOG_ARANGE = np.log2(np.arange(max_K + 2) + 1e-9)
     N_JOBS = args.n_jobs
 
 
-def test(get_topk, get_user_rating, ts_nei, ts_user, item_array, exclude_pair_cnt, masked_items=None, val=True):
+def test(get_topk, get_user_rating, ts_nei, ts_user, item_array, exclude_pair_cnt, masked_items=None):
     results = {'precision': np.zeros(len(Ks)),
                'recall': np.zeros(len(Ks)),
                'ndcg': np.zeros(len(Ks))}
     rating_list = []
     score_list = []
     groundTrue_list = []
-    batch_size = VAL_BATCH_SIZE if val else TEST_BATCH_SIZE
+    batch_size = TEST_BATCH_SIZE
 
     for i, beg in enumerate(range(0, len(ts_user), batch_size)):
         end = min(beg + batch_size, len(ts_user))

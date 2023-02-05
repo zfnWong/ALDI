@@ -44,10 +44,9 @@ class BPRMF:
         with tf.variable_scope("loss"):
             pos_pred = tf.reduce_sum(self.user_emb * pos_item_emb, axis=-1)
             neg_pred = tf.reduce_sum(self.user_emb * neg_item_emb, axis=-1)
-            # 为什么这里就要用 sum 呢
             self.bpr_loss = tf.reduce_mean(tf.nn.sigmoid_cross_entropy_with_logits(logits=pos_pred - neg_pred,
                                                                                    labels=self.ones_label))
-            self.reg_loss_in_bpr = namespace.reg_rate * 1 / 2 * \
+            self.reg_loss_in_bpr = namespace.reg_rate * 1/2 * \
                                    (tf.norm(self.user_emb) + tf.norm(pos_item_emb) + tf.norm(neg_item_emb)) \
                                    / self.float_batch
             self.bpr_loss += self.reg_loss_in_bpr
@@ -99,13 +98,12 @@ parser.add_argument('--dataset', type=str, default="CiteULike", help='Dataset to
 parser.add_argument('--datadir', type=str, default="../data/", help='Director of the dataset.')
 parser.add_argument('--gpu_id', type=int, default=0)
 parser.add_argument('--seed', type=int, default=42, help="Random seed.")
-parser.add_argument("--batch_size", type=int, default=1024, )
+parser.add_argument("--batch_size", type=int, default=1024)
 parser.add_argument("--lr", type=float, default=0.001, help="Learning rate")
 parser.add_argument("--reg_rate", type=float, default=1e-3, help="Model regularization rate")
 parser.add_argument("--factor_num", type=int, default=200, help="Embedding dimension")
 parser.add_argument('--Ks', nargs='?', default='[20,50,100]', help='Output sizes of every layer.')
-parser.add_argument('--val_batch_us', type=int, default=500)
-parser.add_argument('--test_batch_us', type=int, default=500)
+parser.add_argument('--test_batch_us', type=int, default=200)
 parser.add_argument('--n_test_user', type=int, default=2000)
 parser.add_argument('--val_start', type=int, default=1, help="Output beginning point.")
 parser.add_argument("--interval", type=int, default=1, help="Output interval.")
@@ -127,8 +125,7 @@ ndcg.init(args)
 # load data
 data_path = os.path.join(args.datadir, args.dataset)
 para_dict = pickle.load(open(os.path.join(data_path, 'convert_dict.pkl'), 'rb'))
-timer.logging("Data loaded. user:{} item:{}".format(para_dict['user_num'],
-                                                    para_dict['item_num']))
+timer.logging("Data loaded. user:{} item:{}".format(para_dict['user_num'], para_dict['item_num']))
 train_data = pd.read_csv(os.path.join(data_path, 'warm_emb.csv'), dtype=np.int64).values
 
 # Create model
@@ -159,7 +156,7 @@ with tf.Session(config=config) as sess:
     exclude_val_warm = utils.get_exclude_pair_count(para_dict['pos_user_nb'],
                                                     para_dict['warm_val_user'][:args.n_test_user],
                                                     para_dict['warm_val_user_nb'],
-                                                    args.val_batch_us)
+                                                    args.test_batch_us)
     exclude_test_warm = utils.get_exclude_pair_count(para_dict['pos_user_nb'],
                                                      para_dict['warm_test_user'][:args.n_test_user],
                                                      para_dict['warm_test_user_nb'],
@@ -209,7 +206,7 @@ with tf.Session(config=config) as sess:
                                    item_array=para_dict['item_array'],
                                    masked_items=para_dict['cold_item'],
                                    exclude_pair_cnt=exclude_val_warm,
-                                   val=True)
+                                   )
             metric_time_end = time.time()
             metric_time += metric_time_end - metric_time_begin
 
@@ -237,14 +234,13 @@ with tf.Session(config=config) as sess:
                           item_array=para_dict['item_array'],
                           masked_items=para_dict['cold_item'],
                           exclude_pair_cnt=exclude_test_warm,
-                          val=False)
+                          )
     timer.logging(
         '[Test] Time Pre Rec nDCG: ' +
         '{:.4f} {:.4f} {:.4f}'.format(ts_res['precision'][0], ts_res['recall'][0], ts_res['ndcg'][0]))
 
     result_file = './result/'
-    if not os.path.exists(result_file):
-        os.makedirs(result_file)
+    os.makedirs(result_file, exist_ok=True)
     with open(result_file + 'BPRMF-%s.txt' % args.dataset, 'a') as f:
         f.write(str(vars(args)))
         for i in range(len(args.Ks)):
